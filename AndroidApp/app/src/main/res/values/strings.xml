@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Signal Bot</string>
+    <string name="status">Status</string>
+    <string name="clear">Clear</string>
+    <string name="place">Place</string>
+    <string name="cancel">Cancel</string>
+    <string name="enter_signal">Enter Signal</string>
+    <string name="signal_hint">e.g. BUY EURUSD 5m or JSON</string>
+    <string name="ready">Signal Bot ready. Tap + to add a signal.</string>
+</resources>
