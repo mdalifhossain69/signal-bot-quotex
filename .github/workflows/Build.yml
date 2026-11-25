@@ -1,0 +1,60 @@
+name: Android CI Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  COMPILE_SDK: 34
+  GRADLE_VERSION: 8.2
+  JAVA_VERSION: 17
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Install Gradle ${{ env.GRADLE_VERSION }}
+        run: |
+          GRADLE_ZIP=gradle-${{ env.GRADLE_VERSION }}-bin.zip
+          wget -q https://services.gradle.org/distributions/$GRADLE_ZIP
+          sudo unzip -q -o $GRADLE_ZIP -d /opt
+          echo "/opt/gradle-${{ env.GRADLE_VERSION }}/bin" >> $GITHUB_PATH
+          gradle --version
+
+      - name: Gradle build (compile + assembleDebug)
+        run: gradle assembleDebug
+        working-directory: ${{ github.workspace }}/AndroidApp
+
+      - name: Lint (debug)
+        run: gradle lintDebug
+        working-directory: ${{ github.workspace }}/AndroidApp
+        continue-on-error: true
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: signal-bot-debug-apk
+          path: AndroidApp/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Upload build reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-reports
+          path: AndroidApp/app/build/reports/
+          retention-days: 7
